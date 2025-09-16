@@ -265,3 +265,102 @@ class SistemaGestionCursos:
                 evaluaciones.append(self._evaluaciones[eval_id])
 
         return evaluaciones
+
+#instancia
+sistema = SistemaGestionCursos()
+
+
+try:
+    instructor1_id = sistema.registrar_usuario("Profesor Garcia", "garcia@gmail.com", "instructor")
+    instructor2_id = sistema.registrar_usuario("Profesora Martinez", "martinez@gmail.com", "instructor")
+    print(f"Instructores registrados: {instructor1_id}, {instructor2_id}")
+except ValueError as e:
+    print(f"Error al registrar instructor: {e}")
+
+try:
+    estudiante1_id = sistema.registrar_usuario("Ana Lopez", "ana@gmail.com", "estudiante")
+    estudiante2_id = sistema.registrar_usuario("Carlos Ruiz", "carlos@gmail.com", "estudiante")
+    estudiante3_id = sistema.registrar_usuario("Maria Torres", "maria@gmail.com", "estudiante")
+    print(f"Estudiantes registrados: {estudiante1_id}, {estudiante2_id}, {estudiante3_id}")
+except ValueError as e:
+    print(f"Error al registrar estudiante: {e}")
+
+#creacion de cursos
+
+try:
+    curso1_id = sistema.crear_curso("Pensamiento Computacional", "PROG101", instructor1_id)
+    curso2_id = sistema.crear_curso("Precalculo", "MATH201", instructor2_id)
+    print(f"Cursos creados: {curso1_id}, {curso2_id}")
+except ValueError as e:
+    print(f"Error al crear curso: {e}")
+
+#inscripcion de estudiantes a cursos
+
+try:
+    sistema.inscribir_estudiante_curso(estudiante1_id, curso1_id)
+    sistema.inscribir_estudiante_curso(estudiante2_id, curso1_id)
+    sistema.inscribir_estudiante_curso(estudiante2_id, curso2_id)
+    sistema.inscribir_estudiante_curso(estudiante3_id, curso2_id)
+    print("Estudiantes inscritos exitosamente")
+except ValueError as e:
+    print(f"Error al inscribir estudiante: {e}")
+
+
+#mostrar estudiantes inscritos por curso
+print("\n=== Estudiantes Inscritos por curso ===")
+
+cursos = sistema.listar_cursos()
+for curso in cursos:
+    print(f"\nEstudiantes en {curso.nombre}:")
+    estudiantes = sistema.obtener_estudiantes_inscritos(curso.id)
+    for estudiante in estudiantes:
+        print(f"  - {estudiante.nombre}")
+
+#mostrar cursos por estudiante
+print("\n=== Cursos por estudinte ===")
+estudiantes = sistema.listar_usuarios("estudiante")
+for estudiante in estudiantes:
+    print(f"\nCursos de {estudiante.nombre}:")
+    for curso_id in estudiante.cursos_inscritos:
+        curso = sistema.obtener_curso(curso_id)
+        if curso:
+            print(f"  - {curso.nombre}")
+
+#creacion de evaluaciones
+print("\n=== Creaciond e evaluaciones ===")
+
+try:
+    examen_prog_id = sistema.crear_evaluacion(curso1_id, "Examen Parcial", "examen", 100)
+    tarea_prog_id = sistema.crear_evaluacion(curso1_id, "Tarea 1", "tarea", 50)
+    examen_math_id = sistema.crear_evaluacion(curso2_id, "Examen Final", "examen", 100)
+    print(f"Evaluaciones creadas: {examen_prog_id}, {tarea_prog_id}, {examen_math_id}")
+except ValueError as e:
+    print(f"Error al crear evaluación: {e}")
+
+
+#registrar calificaciones
+print("\n=== Registro de calificaciones ===")
+
+examen_prog = sistema.obtener_evaluacion(examen_prog_id)
+tarea_prog = sistema.obtener_evaluacion(tarea_prog_id)
+
+if examen_prog:
+    examen_prog.registrar_calificacion(estudiante1_id, 85)
+    examen_prog.registrar_calificacion(estudiante2_id, 92)
+    print("Calificaciones del examen de programación registradas")
+
+if tarea_prog:
+    tarea_prog.registrar_calificacion(estudiante1_id, 45)
+    tarea_prog.registrar_calificacion(estudiante2_id, 48)
+    print("Calificaciones de la tarea de programación registradas")
+
+print("\n=== Consulta de calificaciones ===")
+
+print(f"Calificacion de Ana en examen: {examen_prog.obtener_calificacion(estudiante1_id)}")
+print(f"Calificacion de Carlos en examen: {examen_prog.obtener_calificacion(estudiante2_id)}")
+print(f"Calificacion de Ana en tarea: {tarea_prog.obtener_calificacion(estudiante1_id)}")
+
+
+print(f"Total usuarios: {len(sistema.listar_usuarios())}")
+print(f"Total cursos: {len(sistema.listar_cursos())}")
+print(f"Total evaluaciones: {len(sistema._evaluaciones)}")
