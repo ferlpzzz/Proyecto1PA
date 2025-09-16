@@ -39,3 +39,44 @@ class Estudiante(Usuario):
             self._cursos_inscritos.append(curso_id)
             return True
         return False
+
+class Instructor(Usuario):
+    def __init__(self, id, nombre, email):
+        super().__init__(id, nombre, email, "instructor")
+        self._cursos_impartidos = []
+
+    @property
+    def cursos_impartidos(self):
+        return self._cursos_impartidos
+
+    def agregar_curso(self, curso_id):
+        if curso_id not in self._cursos_impartidos:
+            self._cursos_impartidos.append(curso_id)
+
+class Evaluacion:
+    def __init__(self, id, curso_id, nombre, tipo, puntaje_maximo):
+        self._id = id
+        self._curso_id = curso_id
+        self._nombre = nombre
+        self._tipo = tipo
+        self._puntaje_maximo = puntaje_maximo
+        self._califcaciones = {} #diccionario para califidaciones (estudiante_id: calificacion=
+
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def curso_id(self):
+        return self._curso_id
+
+    @property
+    def nombre(self):
+        return self._nombre
+
+    @property
+    def tipo(self):
+        return self._tipo
+
+
