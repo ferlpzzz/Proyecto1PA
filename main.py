@@ -466,3 +466,22 @@ class CourseManagementSystem:
         if count > 0:
             average = total_score / count
             print(f"\nPromedio: {average:.2f}/100")
+
+    def generate_low_performance_report(self, threshold=60):
+        print(f"\n=== REPORTE: ESTUDIANTES CON RENDIMIENTO BAJO (<{threshold}) ===")
+
+        found = False
+        for student_id, student in self._users.items():
+            if isinstance(student, Student) and student.grades:
+                total = sum(student.grades.values())
+                average = total / len(student.grades)
+
+                if average < threshold:
+                    print(f"\n{student.name} ({student_id})")
+                    print(f"Promedio: {average:.2f}/100")
+                    print(f"Cursos inscritos: {len(student.enrolled_courses)}")
+                    print(f"Evaluaciones realizadas: {len(student.grades)}")
+                    found = True
+
+        if not found:
+            print("No hay estudiantes con rendimiento bajo.")
