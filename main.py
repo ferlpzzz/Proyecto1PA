@@ -436,3 +436,33 @@ class CourseManagementSystem:
             if eval_id in self._evaluations:
                 evaluation = self._evaluations[eval_id]
                 print(f"  - {evaluation.name} (ID: {eval_id}, Max: {evaluation.max_score})")
+
+    def show_student_grades(self):
+        print("\n--- CALIFICACIONES DEL ESTUDIANTE ---")
+        student_id = input("ID del estudiante: ")
+
+        if student_id not in self._users or not isinstance(self._users[student_id], Student):
+            print("Error: No existe un estudiante con este ID.")
+            return
+
+        student = self._users[student_id]
+        print(f"\nCalificaciones de {student.name} ({student_id})")
+
+        if not student.grades:
+            print("No tiene calificaciones registradas.")
+            return
+
+        total_score = 0
+        count = 0
+
+        for eval_id, grade in student.grades.items():
+            if eval_id in self._evaluations:
+                evaluation = self._evaluations[eval_id]
+                percentage = (grade / evaluation.max_score) * 100
+                print(f"  - {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.2f}%)")
+                total_score += grade
+                count += 1
+
+        if count > 0:
+            average = total_score / count
+            print(f"\nPromedio: {average:.2f}/100")
