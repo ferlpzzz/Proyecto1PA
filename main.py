@@ -276,6 +276,7 @@ class CourseManagementSystem:
             self._users[user_id] = Instructor(user_id, name, email)
         else:
             raise ValueError("Tipo de usuario no válido")
+        self.save_data()
 
         return user_id
 
@@ -300,7 +301,8 @@ class CourseManagementSystem:
 
         instructor = self._users[instructor_id]
         instructor.add_course(course_id)
-
+        self.save_data()
+        print(f"Curso {name} creado exitosamente")
         return course_id
 
     def get_course(self, course_id):
@@ -319,7 +321,11 @@ class CourseManagementSystem:
         course = self._courses[course_id]
         if course.enroll_student(student_id):
             student = self._users[student_id]
-            return student.enroll_course(course_id)
+            result = student.enroll_course(course_id)
+            if result:
+                self.save_data()
+                print("Estudiante inscrito exitosamente en el curso")
+            return result
 
         return False
 
@@ -348,6 +354,8 @@ class CourseManagementSystem:
 
         course = self._courses[course_id]
         course.add_evaluation(evaluation_id)
+        self.save_data()
+        print(f"Evaluacion {name} creada exitosamente")
 
         return evaluation_id
 
