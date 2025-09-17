@@ -373,3 +373,39 @@ class CourseManagementSystem:
                 evaluations.append(self._evaluations[eval_id])
 
         return evaluations
+    def register_grade(self):
+        print("\n--- REGISTRAR CALIFICACIÓN ---")
+        student_id = input("Carnet del estudiante: ")
+        evaluation_id = input("ID de la evaluación: ")
+
+        if student_id not in self._users or not isinstance(self._users[student_id], Student):
+            print("Error: No existe un estudiante con este carnet.")
+            return
+
+        if evaluation_id not in self._evaluations:
+            print("Error: No existe una evaluación con este ID.")
+            return
+
+        try:
+            grade = float(input("Calificación: "))
+            evaluation = self._evaluations[evaluation_id]
+
+            if grade < 0 or grade > evaluation.max_score:
+                print(f"Error: La calificación debe estar entre 0 y {evaluation.max_score}")
+                return
+
+            student = self._users[student_id]
+
+            if evaluation.course_id not in student.enrolled_courses:
+                print("Error: El estudiante no está inscrito en este curso.")
+                return
+
+            if evaluation.register_grade(student_id, grade):
+                student.record_grade(evaluation_id, grade)
+                self.save_data()
+                print(f"Calificación {grade}/{evaluation.max_score} registrada para {student.name}")
+            else:
+                print("Error al registrar la calificación")
+
+        except ValueError:
+            print("Error: La calificación debe ser un número.")
