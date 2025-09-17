@@ -1,267 +1,271 @@
-class Usuario:
-    def __init__(self, id, nombre, email, tipo):
-        self._id = id
-        self._nombre = nombre
+class User:
+    def __init__(self, user_id, name, email, user_type):
+        self._user_id = user_id
+        self._name = name
         self._email = email
-        self._tipo = tipo
+        self._user_type = user_type
 
     @property
-    def id(self):
-        return self._id
+    def user_id(self):
+        return self._user_id
 
     @property
-    def nombre(self):
-        return self._nombre
+    def name(self):
+        return self._name
 
     @property
     def email(self):
         return self._email
 
     @property
-    def tipo(self):
-        return self._tipo
+    def user_type(self):
+        return self._user_type
 
     def __str__(self):
-        return f"{self._nombre} - {self._email} - {self._tipo}"
+        return f"{self._name} - {self._email} - {self._user_type}"
 
 
-class Estudiante(Usuario):
-    def __init__(self, id, nombre, email):
-        super().__init__(id, nombre, email, "estudiante")
-        self._cursos_inscritos = []
+class Student(User):
+    def __init__(self, user_id, name, email):
+        super().__init__(user_id, name, email, "student")
+        self._enrolled_courses = []
 
     @property
-    def cursos_inscritos(self):
-        return self._cursos_inscritos
+    def enrolled_courses(self):
+        return self._enrolled_courses
 
-    def inscribir_curso(self, curso_id):
-        if curso_id not in self._cursos_inscritos:
-            self._cursos_inscritos.append(curso_id)
+    def enroll_course(self, course_id):
+        if course_id not in self._enrolled_courses:
+            self._enrolled_courses.append(course_id)
             return True
         return False
 
 
-class Instructor(Usuario):
-    def __init__(self, id, nombre, email):
-        super().__init__(id, nombre, email, "instructor")
-        self._cursos_impartidos = []
+class Instructor(User):
+    def __init__(self, user_id, name, email):
+        super().__init__(user_id, name, email, "instructor")
+        self._taught_courses = []
 
     @property
-    def cursos_impartidos(self):
-        return self._cursos_impartidos
+    def taught_courses(self):
+        return self._taught_courses
 
-    def agregar_curso(self, curso_id):
-        if curso_id not in self._cursos_impartidos:
-            self._cursos_impartidos.append(curso_id)
+    def add_course(self, course_id):
+        if course_id not in self._taught_courses:
+            self._taught_courses.append(course_id)
 
 
-class Evaluacion:
-    def __init__(self, id, curso_id, nombre, tipo, puntaje_maximo):
-        self._id = id
-        self._curso_id = curso_id
-        self._nombre = nombre
-        self._tipo = tipo
-        self._puntaje_maximo = puntaje_maximo
-        self._calificaciones = {}
-
-    @property
-    def id(self):
-        return self._id
+class Evaluation:
+    def __init__(self, evaluation_id, course_id, name, evaluation_type, max_score):
+        self._evaluation_id = evaluation_id
+        self._course_id = course_id
+        self._name = name
+        self._evaluation_type = evaluation_type
+        self._max_score = max_score
+        self._grades = {}
 
     @property
-    def curso_id(self):
-        return self._curso_id
+    def evaluation_id(self):
+        return self._evaluation_id
 
     @property
-    def nombre(self):
-        return self._nombre
+    def course_id(self):
+        return self._course_id
 
     @property
-    def tipo(self):
-        return self._tipo
+    def name(self):
+        return self._name
 
-    def registrar_calificacion(self, estudiante_id, calificacion):
-        if 0 <= calificacion <= self._puntaje_maximo:
-            self._calificaciones[estudiante_id] = calificacion
+    @property
+    def evaluation_type(self):
+        return self._evaluation_type
+
+    @property
+    def max_score(self):
+        return self._max_score
+
+    def register_grade(self, student_id, grade):
+        if 0 <= grade <= self._max_score:
+            self._grades[student_id] = grade
             return True
         return False
 
-    def obtener_calificacion(self, estudiante_id):
-        return self._calificaciones.get(estudiante_id, None)
+    def get_grade(self, student_id):
+        return self._grades.get(student_id, None)
 
     def __str__(self):
-        return f"{self._nombre} - ({self._tipo}) - Puntaje maximo: {self._puntaje_maximo}"
+        return f"{self._name} - ({self._evaluation_type}) - Max score: {self._max_score}"
 
 
-class Curso:
-    def __init__(self, id, nombre, codigo, instructor_id):
-        self._id = id
-        self._nombre = nombre
-        self._codigo = codigo
+class Course:
+    def __init__(self, course_id, name, code, instructor_id):
+        self._course_id = course_id
+        self._name = name
+        self._code = code
         self._instructor_id = instructor_id
-        self._estudiantes_inscritos = []
-        self._evaluaciones = []
+        self._enrolled_students = []
+        self._evaluations = []
 
     @property
-    def id(self):
-        return self._id
+    def course_id(self):
+        return self._course_id
 
     @property
-    def nombre(self):
-        return self._nombre
+    def name(self):
+        return self._name
 
     @property
-    def codigo(self):
-        return self._codigo
+    def code(self):
+        return self._code
 
     @property
     def instructor_id(self):
         return self._instructor_id
 
     @property
-    def estudiantes_inscritos(self):
-        return self._estudiantes_inscritos
+    def enrolled_students(self):
+        return self._enrolled_students
 
     @property
-    def evaluaciones(self):
-        return self._evaluaciones
+    def evaluations(self):
+        return self._evaluations
 
-    def inscribir_estudiante(self, estudiante_id):
-        if estudiante_id not in self.estudiantes_inscritos:
-            self.estudiantes_inscritos.append(estudiante_id)
+    def enroll_student(self, student_id):
+        if student_id not in self.enrolled_students:
+            self.enrolled_students.append(student_id)
             return True
         return False
 
-    def agregar_evaluacion(self, evaluacion_id):
-        if evaluacion_id not in self.evaluaciones:
-            self.evaluaciones.append(evaluacion_id)
+    def add_evaluation(self, evaluation_id):
+        if evaluation_id not in self.evaluations:
+            self.evaluations.append(evaluation_id)
 
     def __str__(self):
-        return f"{self._nombre} ({self._codigo})"
+        return f"{self._name} ({self._code})"
 
 
-class SistemaGestionCursos:
+class CourseManagementSystem:
     def __init__(self):
-        self._usuarios = {}
-        self._cursos = {}
-        self._evaluaciones = {}
-        self._contador_ids = 1
+        self._users = {}
+        self._courses = {}
+        self._evaluations = {}
+        self._id_counter = 1
 
-    def _generar_id_unico(self):
-        id_unico = f"id_{self._contador_ids}"
-        self._contador_ids += 1
-        return id_unico
+    def _generate_unique_id(self):
+        unique_id = f"id_{self._id_counter}"
+        self._id_counter += 1
+        return unique_id
 
-    def _email_existe(self, email):
-        for usuario in self._usuarios.values():
-            if usuario.email == email:
+    def _email_exists(self, email):
+        for user in self._users.values():
+            if user.email == email:
                 return True
         return False
 
-    def _codigo_curso_existe(self, codigo):
-        for curso in self._cursos.values():
-            if curso.codigo == codigo:
+    def _course_code_exists(self, code):
+        for course in self._courses.values():
+            if course.code == code:
                 return True
         return False
 
-    def registrar_usuario(self, nombre, email, tipo, **kwargs):
-        if self._email_existe(email):
+    def register_user(self, name, email, user_type, **kwargs):
+        if self._email_exists(email):
             raise ValueError("El email ya está registrado")
 
-        usuario_id = self._generar_id_unico()
+        user_id = self._generate_unique_id()
 
-        if tipo == "estudiante":
-            self._usuarios[usuario_id] = Estudiante(usuario_id, nombre, email)
-        elif tipo == "instructor":
-            self._usuarios[usuario_id] = Instructor(usuario_id, nombre, email)
+        if user_type == "student":
+            self._users[user_id] = Student(user_id, name, email)
+        elif user_type == "instructor":
+            self._users[user_id] = Instructor(user_id, name, email)
         else:
             raise ValueError("Tipo de usuario no válido")
 
-        return usuario_id
+        return user_id
 
-    def obtener_usuario(self, usuario_id):
-        return self._usuarios.get(usuario_id, None)
+    def get_user(self, user_id):
+        return self._users.get(user_id, None)
 
-    def listar_usuarios(self, tipo=None):
-        if tipo:
-            return [usuario for usuario in self._usuarios.values() if usuario.tipo == tipo]
-        return list(self._usuarios.values())
+    def list_users(self, user_type=None):
+        if user_type:
+            return [user for user in self._users.values() if user.user_type == user_type]
+        return list(self._users.values())
 
-    def crear_curso(self, nombre, codigo, instructor_id):
-        if instructor_id not in self._usuarios or not isinstance(self._usuarios[instructor_id], Instructor):
+    def create_course(self, name, code, instructor_id):
+        if instructor_id not in self._users or not isinstance(self._users[instructor_id], Instructor):
             raise ValueError("El instructor no existe")
 
-        if self._codigo_curso_existe(codigo):
+        if self._course_code_exists(code):
             raise ValueError("El código del curso ya existe")
 
-        curso_id = self._generar_id_unico()
+        course_id = self._generate_unique_id()
 
-        self._cursos[curso_id] = Curso(curso_id, nombre, codigo, instructor_id)
+        self._courses[course_id] = Course(course_id, name, code, instructor_id)
 
-        instructor = self._usuarios[instructor_id]
-        instructor.agregar_curso(curso_id)
+        instructor = self._users[instructor_id]
+        instructor.add_course(course_id)
 
-        return curso_id
+        return course_id
 
-    def obtener_curso(self, curso_id):
-        return self._cursos.get(curso_id, None)
+    def get_course(self, course_id):
+        return self._courses.get(course_id, None)
 
-    def listar_cursos(self):
-        return list(self._cursos.values())
+    def list_courses(self):
+        return list(self._courses.values())
 
-    def inscribir_estudiante_curso(self, estudiante_id, curso_id):
-        if estudiante_id not in self._usuarios or not isinstance(self._usuarios[estudiante_id], Estudiante):
+    def enroll_student_in_course(self, student_id, course_id):
+        if student_id not in self._users or not isinstance(self._users[student_id], Student):
             raise ValueError("El estudiante no existe")
 
-        if curso_id not in self._cursos:
+        if course_id not in self._courses:
             raise ValueError("El curso no existe")
 
-        curso = self._cursos[curso_id]
-        if curso.inscribir_estudiante(estudiante_id):
-            estudiante = self._usuarios[estudiante_id]
-            return estudiante.inscribir_curso(curso_id)
+        course = self._courses[course_id]
+        if course.enroll_student(student_id):
+            student = self._users[student_id]
+            return student.enroll_course(course_id)
 
         return False
 
-    def obtener_estudiantes_inscritos(self, curso_id):
-        if curso_id not in self._cursos:
+    def get_enrolled_students(self, course_id):
+        if course_id not in self._courses:
             raise ValueError("El curso no existe")
 
-        curso = self._cursos[curso_id]
-        estudiantes = []
-        for estudiante_id in curso.estudiantes_inscritos:
-            if estudiante_id in self._usuarios:
-                estudiantes.append(self._usuarios[estudiante_id])
+        course = self._courses[course_id]
+        students = []
+        for student_id in course.enrolled_students:
+            if student_id in self._users:
+                students.append(self._users[student_id])
 
-        return estudiantes
+        return students
 
-    def crear_evaluacion(self, curso_id, nombre, tipo, puntaje_maximo):
-        if curso_id not in self._cursos:
+    def create_evaluation(self, course_id, name, evaluation_type, max_score):
+        if course_id not in self._courses:
             raise ValueError("El curso no existe")
 
-        if tipo not in ["examen", "tarea"]:
+        if evaluation_type not in ["exam", "assignment"]:
             raise ValueError("Tipo de evaluación no válido")
 
-        evaluacion_id = self._generar_id_unico()
+        evaluation_id = self._generate_unique_id()
 
-        self._evaluaciones[evaluacion_id] = Evaluacion(evaluacion_id, curso_id, nombre, tipo, puntaje_maximo)
+        self._evaluations[evaluation_id] = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
 
-        curso = self._cursos[curso_id]
-        curso.agregar_evaluacion(evaluacion_id)
+        course = self._courses[course_id]
+        course.add_evaluation(evaluation_id)
 
-        return evaluacion_id
+        return evaluation_id
 
-    def obtener_evaluacion(self, evaluacion_id):
-        return self._evaluaciones.get(evaluacion_id, None)
+    def get_evaluation(self, evaluation_id):
+        return self._evaluations.get(evaluation_id, None)
 
-    def listar_evaluaciones_curso(self, curso_id):
-        if curso_id not in self._cursos:
+    def list_course_evaluations(self, course_id):
+        if course_id not in self._courses:
             raise ValueError("El curso no existe")
 
-        curso = self._cursos[curso_id]
-        evaluaciones = []
-        for eval_id in curso.evaluaciones:
-            if eval_id in self._evaluaciones:
-                evaluaciones.append(self._evaluaciones[eval_id])
+        course = self._courses[course_id]
+        evaluations = []
+        for eval_id in course.evaluations:
+            if eval_id in self._evaluations:
+                evaluations.append(self._evaluations[eval_id])
 
-        return evaluaciones
+        return evaluations
