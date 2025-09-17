@@ -409,3 +409,30 @@ class CourseManagementSystem:
 
         except ValueError:
             print("Error: La calificación debe ser un número.")
+
+    def show_course_details(self):
+        print("\n--- DETALLES DEL CURSO ---")
+        course_id = input("ID del curso: ")
+
+        if course_id not in self._courses:
+            print("Error: No existe un curso con este ID.")
+            return
+
+        course = self._courses[course_id]
+        print(f"\nCURSO: {course.name} ({course.code})")
+
+        if course.instructor_id in self._users:
+            instructor = self._users[course.instructor_id]
+            print(f"Instructor: {instructor.name}")
+
+        print(f"\nEstudiantes inscritos ({len(course.enrolled_students)}):")
+        for student_id in course.enrolled_students:
+            if student_id in self._users:
+                student = self._users[student_id]
+                print(f"  - {student.name} ({student_id})")
+
+        print(f"\nEvaluaciones ({len(course.evaluations)}):")
+        for eval_id in course.evaluations:
+            if eval_id in self._evaluations:
+                evaluation = self._evaluations[eval_id]
+                print(f"  - {evaluation.name} (ID: {eval_id}, Max: {evaluation.max_score})")
