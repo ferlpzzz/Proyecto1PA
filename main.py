@@ -260,7 +260,7 @@ class CourseManagementSystem:
 
     def list_course_evaluations(self, course_id):
         if course_id not in self._courses:
-            raise ValueError("El curso no existe")
+            raise ValueError("El curso no existe.")
 
         course = self._courses[course_id]
         evaluations = []
