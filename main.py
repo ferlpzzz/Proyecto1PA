@@ -485,3 +485,73 @@ class CourseManagementSystem:
 
         if not found:
             print("No hay estudiantes con rendimiento bajo.")
+
+    def generate_course_report(self):
+        print("\n=== REPORTE POR CURSO ===")
+        course_id = input("ID del curso: ")
+
+        if course_id not in self._courses:
+            print("Error: No existe un curso con este ID.")
+            return
+
+        course = self._courses[course_id]
+        print(f"\nReporte del curso: {course.name} ({course.code})")
+
+        if course.instructor_id in self._users:
+            instructor = self._users[course.instructor_id]
+            print(f"Instructor: {instructor.name}")
+
+        print(f"Estudiantes inscritos: {len(course.enrolled_students)}")
+        print(f"Evaluaciones: {len(course.evaluations)}")
+
+        for eval_id in course.evaluations:
+            if eval_id in self._evaluations:
+                evaluation = self._evaluations[eval_id]
+                grades = []
+
+                for student_id in course.enrolled_students:
+                    if student_id in self._users and eval_id in self._users[student_id].grades:
+                        grades.append(self._users[student_id].grades[eval_id])
+
+                if grades:
+                    avg = sum(grades) / len(grades)
+                    max_grade = max(grades)
+                    min_grade = min(grades)
+                    print(f"\n{evaluation.name}:")
+                    print(f"Promedio: {avg:.2f}/{evaluation.max_score}")
+                    print(f"Máxima: {max_grade}/{evaluation.max_score}")
+                    print(f"Mínima: {min_grade}/{evaluation.max_score}")
+                    print(f"Calificados: {len(grades)}/{len(course.enrolled_students)}")
+
+    def generate_student_report(self):
+        print("\n=== REPORTE INDIVIDUAL DE ESTUDIANTE ===")
+        student_id = input("ID del estudiante: ")
+
+        if student_id not in self._users or not isinstance(self._users[student_id], Student):
+            print("Error: No existe un estudiante con este ID.")
+            return
+
+        student = self._users[student_id]
+        print(f"\nReporte de: {student.name} ({student_id})")
+        print(f"Cursos inscritos: {len(student.enrolled_courses)}")
+
+        if student.grades:
+            total = sum(student.grades.values())
+            average = total / len(student.grades)
+            print(f"Promedio general: {average:.2f}/100")
+
+            print("\nCalificaciones por curso:")
+            for course_id in student.enrolled_courses:
+                if course_id in self._courses:
+                    course = self._courses[course_id]
+                    course_grades = []
+
+                    for eval_id in course.evaluations:
+                        if eval_id in student.grades:
+                            course_grades.append(student.grades[eval_id])
+
+                    if course_grades:
+                        course_avg = sum(course_grades) / len(course_grades)
+                        print(f"  - {course.name}: {course_avg:.2f}/100")
+        else:
+            print("No tiene calificaciones registradas.")
