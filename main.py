@@ -555,3 +555,107 @@ class CourseManagementSystem:
                         print(f"  - {course.name}: {course_avg:.2f}/100")
         else:
             print("No tiene calificaciones registradas.")
+
+system = CourseManagementSystem()
+
+while True:
+    print("       SISTEMA DE GESTIÓN DE CURSOS ONLINE")
+    print("=" * 50)
+    print("1. Registrar Estudiante")
+    print("2. Registrar Instructor")
+    print("3. Crear Curso")
+    print("4. Inscribir Estudiante en Curso")
+    print("5. Crear Evaluación")
+    print("6. Registrar Calificación")
+    print("7. Ver Detalles de Curso")
+    print("8. Ver Calificaciones de Estudiante")
+    print("9. Ver Resultados de Evaluación")
+    print("10. Reporte: Estudiantes con Rendimiento Bajo")
+    print("11. Reporte por Curso")
+    print("12. Reporte Individual de Estudiante")
+    print("13. Listar Usuarios")
+    print("14. Listar Cursos")
+    print("15. Salir")
+    option = input("Seleccione una opción: ")
+
+    try:
+        match option:
+            case "1":
+                print("\n--- REGISTRAR ESTUDIANTE ---")
+                name = input("Nombre: ")
+                email = input("Email: ")
+                system.register_user(name, email, "student")
+
+            case "2":
+                print("\n--- REGISTRAR INSTRUCTOR ---")
+                name = input("Nombre: ")
+                email = input("Email: ")
+                system.register_user(name, email, "instructor")
+
+            case "3":
+                print("\n--- CREAR CURSO ---")
+                name = input("Nombre del curso: ")
+                code = input("Código del curso: ")
+                instructor_id = input("ID del instructor: ")
+                system.create_course(name, code, instructor_id)
+
+            case "4":
+                print("\n--- INSCRIBIR ESTUDIANTE EN CURSO ---")
+                student_id = input("ID del estudiante: ")
+                course_id = input("ID del curso: ")
+                system.enroll_student_in_course(student_id, course_id)
+
+            case "5":
+                print("\n--- CREAR EVALUACIÓN ---")
+                course_id = input("ID del curso: ")
+                name = input("Nombre de la evaluación: ")
+                eval_type = input("Tipo (exam/assignment): ")
+                max_score = int(input("Puntaje máximo: "))
+                system.create_evaluation(course_id, name, eval_type, max_score)
+
+            case "6":
+                system.register_grade()
+
+            case "7":
+                system.show_course_details()
+
+            case "8":
+                system.show_student_grades()
+
+            case "9":
+                system.show_evaluation_results()
+
+            case "10":
+                threshold = input("Umbral de promedio (default 60): ")
+                threshold = int(threshold) if threshold else 60
+                system.generate_low_performance_report(threshold)
+
+            case "11":
+                system.generate_course_report()
+
+            case "12":
+                system.generate_student_report()
+
+            case "13":
+                print("\n--- LISTA DE USUARIOS ---")
+                users = system.list_users()
+                for user in users:
+                    print(f"- {user}")
+
+            case "14":
+                print("\n--- LISTA DE CURSOS ---")
+                courses = system.list_courses()
+                for course in courses:
+                    print(f"- {course}")
+
+            case "15":
+                print("¡Gracias por usar el sistema, adioooooooooos! ")
+                break
+
+            case _:
+                print("Opción no válida. Intente de nuevo.")
+
+    except ValueError as e:
+        print(f"Error: {e}")
+    except Exception as e:
+        print(f"Error inesperado: {e}")
