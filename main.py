@@ -29,10 +29,15 @@ class Student(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "student")
         self._enrolled_courses = []
+        self._grades = {}
 
     @property
     def enrolled_courses(self):
         return self._enrolled_courses
+
+    @property
+    def grades(self):
+        return self._grades
 
     def enroll_course(self, course_id):
         if course_id not in self._enrolled_courses:
@@ -40,6 +45,8 @@ class Student(User):
             return True
         return False
 
+    def record_grade(self, evaluation_id, grade):
+        self._grades[evaluation_id] = grade
 
 class Instructor(User):
     def __init__(self, user_id, name, email):
@@ -150,19 +157,108 @@ class CourseManagementSystem:
         self._courses = {}
         self._evaluations = {}
         self._id_counter = 1
+        self.load_data()
+    def load_data(self):
+        self._load_users()
+        self._load_courses()
+        self._load_evaluations()
+        self._load_grades()
 
-    def _generate_unique_id(self):
+    def save_data(self):
+        self._save_users()
+        self._save_courses()
+        self._save_evaluations()
+        self._save_grades()
+
+    def load_users(self):
+        try:
+            with open("users.txt", "r", encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if line:
+                        user_id, name, email, user_type = line.split("|")
+                        if user_type == "student":
+                            self._users[user_id] = Student(user_id, name, email)
+                        elif user_type == "instructor":
+                            self._users[user_id] = Instructor(user_id, name, email)
+            print("Usuarios cargados desde users.txt")
+        except FileNotFoundError:
+            print("Archivo users.txt no encontrado")
+
+    def save_users(self):
+        with open("users.txt", "w", encoding="utf-8") as file:
+            for user_id, user in self._users.items():
+                file.write(f"{user_id}|{user.name}|{user.email}|{user.user_type}\n")
+
+    def load_courses(self):
+        try:
+            with open("courses.txt", "r", encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if line:
+                        course_id, name, code, instructor_id = line.split("|")
+                        if instructor_id in self._users:
+                            self._courses[course_id] = Course(course_id, name, code, instructor_id)
+            print("Cursos cargados desde courses.txt")
+        except FileNotFoundError:
+            print("Archivo courses.txt no encontrado")
+
+    def save_courses(self):
+        with open("courses.txt", "w", encoding="utf-8") as file:
+            for course_id, course in self._courses.items():
+                file.write(f"{course_id}|{course.name}|{course.code}|{course.instructor_id}\n")
+
+    def load_evaluations(self):
+        try:
+            with open("evaluations.txt", "r", encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if line:
+                        eval_id, name, course_id, eval_type, max_score = line.split("|")
+                        if course_id in self._courses:
+                            self._evaluations[eval_id] = Evaluation(eval_id, course_id, name, eval_type, int(max_score))
+            print("Evaluaciones cargadas desde evaluations.txt")
+        except FileNotFoundError:
+            print("Archivo evaluations.txt no encontrado")
+
+    def save_evaluations(self):
+        with open("evaluations.txt", "w", encoding="utf-8") as file:
+            for eval_id, evaluation in self._evaluations.items():
+                file.write(
+                    f"{eval_id}|{evaluation.name}|{evaluation.course_id}|{evaluation.evaluation_type}|{evaluation.max_score}\n")
+
+    def load_grades(self):
+        try:
+            with open("grades.txt", "r", encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if line:
+                        student_id, eval_id, grade = line.split("|")
+                        if student_id in self._users and eval_id in self._evaluations:
+                            self._users[student_id].record_grade(eval_id, float(grade))
+            print("Calificaciones cargadas desde grades.txt")
+        except FileNotFoundError:
+            print("Archivo grades.txt no encontrado")
+
+    def save_grades(self):
+        with open("grades.txt", "w", encoding="utf-8") as file:
+            for user_id, user in self._users.items():
+                if isinstance(user, Student):
+                    for eval_id, grade in user.grades.items():
+                        file.write(f"{user_id}|{eval_id}|{grade}\n")
+
+    def generate_unique_id(self):
         unique_id = f"id_{self._id_counter}"
         self._id_counter += 1
         return unique_id
 
-    def _email_exists(self, email):
+    def email_exists(self, email):
         for user in self._users.values():
             if user.email == email:
                 return True
         return False
 
-    def _course_code_exists(self, code):
+    def course_code_exists(self, code):
         for course in self._courses.values():
             if course.code == code:
                 return True
