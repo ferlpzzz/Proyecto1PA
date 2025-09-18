@@ -48,6 +48,7 @@ class Student(User):
     def record_grade(self, evaluation_id, grade):
         self._grades[evaluation_id] = grade
 
+
 class Instructor(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "instructor")
@@ -138,14 +139,14 @@ class Course:
         return self._evaluations
 
     def enroll_student(self, student_id):
-        if student_id not in self.enrolled_students:
-            self.enrolled_students.append(student_id)
+        if student_id not in self._enrolled_students:
+            self._enrolled_students.append(student_id)
             return True
         return False
 
     def add_evaluation(self, evaluation_id):
-        if evaluation_id not in self.evaluations:
-            self.evaluations.append(evaluation_id)
+        if evaluation_id not in self._evaluations:
+            self._evaluations.append(evaluation_id)
 
     def __str__(self):
         return f"{self._name} ({self._code})"
@@ -158,17 +159,18 @@ class CourseManagementSystem:
         self._evaluations = {}
         self._id_counter = 1
         self.load_data()
+
     def load_data(self):
-        self._load_users()
-        self._load_courses()
-        self._load_evaluations()
-        self._load_grades()
+        self.load_users()
+        self.load_courses()
+        self.load_evaluations()
+        self.load_grades()
 
     def save_data(self):
-        self._save_users()
-        self._save_courses()
-        self._save_evaluations()
-        self._save_grades()
+        self.save_users()
+        self.save_courses()
+        self.save_evaluations()
+        self.save_grades()
 
     def load_users(self):
         try:
@@ -265,10 +267,10 @@ class CourseManagementSystem:
         return False
 
     def register_user(self, name, email, user_type, **kwargs):
-        if self._email_exists(email):
+        if self.email_exists(email):
             raise ValueError("El email ya está registrado")
 
-        user_id = self._generate_unique_id()
+        user_id = self.generate_unique_id()
 
         if user_type == "student":
             self._users[user_id] = Student(user_id, name, email)
@@ -292,10 +294,10 @@ class CourseManagementSystem:
         if instructor_id not in self._users or not isinstance(self._users[instructor_id], Instructor):
             raise ValueError("El instructor no existe")
 
-        if self._course_code_exists(code):
+        if self.course_code_exists(code):
             raise ValueError("El código del curso ya existe")
 
-        course_id = self._generate_unique_id()
+        course_id = self.generate_unique_id()
 
         self._courses[course_id] = Course(course_id, name, code, instructor_id)
 
@@ -348,7 +350,7 @@ class CourseManagementSystem:
         if evaluation_type not in ["exam", "assignment"]:
             raise ValueError("Tipo de evaluación no válido")
 
-        evaluation_id = self._generate_unique_id()
+        evaluation_id = self.generate_unique_id()
 
         self._evaluations[evaluation_id] = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
 
@@ -373,6 +375,7 @@ class CourseManagementSystem:
                 evaluations.append(self._evaluations[eval_id])
 
         return evaluations
+
     def register_grade(self):
         print("\n--- REGISTRAR CALIFICACIÓN ---")
         student_id = input("Carnet del estudiante: ")
@@ -467,14 +470,55 @@ class CourseManagementSystem:
             average = total_score / count
             print(f"\nPromedio: {average:.2f}/100")
 
+    def show_evaluation_results(self):
+        print("\n--- RESULTADOS DE EVALUACIÓN ---")
+        evaluation_id = input("ID de la evaluación: ")
+
+        if evaluation_id not in self._evaluations:
+            print("Error: No existe una evaluación con este ID.")
+            return
+
+        evaluation = self._evaluations[evaluation_id]
+        course = self._courses.get(evaluation.course_id)
+
+        print(f"\nEvaluación: {evaluation.name}")
+        print(f"Curso: {course.name if course else 'Curso no encontrado'}")
+        print(f"Tipo: {evaluation.evaluation_type}")
+        print(f"Puntaje máximo: {evaluation.max_score}")
+
+        grades = evaluation._grades
+        if not grades:
+            print("No hay calificaciones registradas para esta evaluación.")
+            return
+
+        print(f"\nCalificaciones registradas ({len(grades)}):")
+        grade_values = []
+
+        for student_id, grade in grades.items():
+            if student_id in self._users:
+                student = self._users[student_id]
+                percentage = (grade / evaluation.max_score) * 100
+                print(f"  - {student.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
+                grade_values.append(percentage)
+
+        if grade_values:
+            avg_percentage = sum(grade_values) / len(grade_values)
+            max_percentage = max(grade_values)
+            min_percentage = min(grade_values)
+
+            print(f"\nEstadísticas:")
+            print(f"  - Promedio: {avg_percentage:.1f}%")
+            print(f"  - Máxima: {max_percentage:.1f}%")
+            print(f"  - Mínima: {min_percentage:.1f}%")
+
     def generate_low_performance_report(self, threshold=60):
         print(f"\n=== REPORTE: ESTUDIANTES CON RENDIMIENTO BAJO (<{threshold}) ===")
 
         found = False
         for student_id, student in self._users.items():
             if isinstance(student, Student) and student.grades:
-                total = sum(student.grades.values())
-                average = total / len(student.grades)
+                total_score = sum(student.grades.values())
+                average = total_score / len(student.grades)
 
                 if average < threshold:
                     print(f"\n{student.name} ({student_id})")
@@ -555,6 +599,7 @@ class CourseManagementSystem:
                         print(f"  - {course.name}: {course_avg:.2f}/100")
         else:
             print("No tiene calificaciones registradas.")
+
 
 system = CourseManagementSystem()
 
