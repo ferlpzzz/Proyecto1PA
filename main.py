@@ -601,6 +601,28 @@ class CourseManagementSystem:
         else:
             print("No tiene calificaciones registradas.")
 
+    def clear_all_data(self):
+        print("\n--- LIMPIAR TODOS LOS DATOS ---")
+        confirm = input("¿Estás seguro de que quieres borrar TODOS los datos? (escribe 'CONFIRMAR' para continuar): ")
+
+        if confirm == "CONFIRMAR":
+            self._users.clear()
+            self._courses.clear()
+            self._evaluations.clear()
+            self._id_counter = 1
+
+            try:
+                open("users.txt", "w").close()
+                open("courses.txt", "w").close()
+                open("evaluations.txt", "w").close()
+                open("grades.txt", "w").close()
+                open("id_counter.txt", "w").close()
+                print("Todos los datos han sido eliminados exitosamente.")
+            except Exception as e:
+                print(f"Error al limpiar archivos: {e}")
+        else:
+            print("Operación cancelada.")
+
 
 system = CourseManagementSystem()
 
@@ -621,7 +643,8 @@ while True:
     print("12. Reporte Individual de Estudiante")
     print("13. Listar Usuarios")
     print("14. Listar Cursos")
-    print("15. Salir")
+    print("15. Limpiar Todos los Datos")
+    print("16. Salir")
     option = input("Seleccione una opción: ")
 
     try:
@@ -699,6 +722,9 @@ while True:
                     print(f"- {course}")
 
             case "15":
+                system.clear_all_data()
+
+            case "16":
                 print("¡Gracias por usar el sistema, adioooooooooos! ")
                 break
 
