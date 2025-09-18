@@ -556,7 +556,6 @@ class CourseManagementSystem:
                 for student_id in course.enrolled_students:
                     if student_id in self._users and eval_id in self._users[student_id].grades:
                         grades.append(self._users[student_id].grades[eval_id])
-
                 if grades:
                     avg = sum(grades) / len(grades)
                     max_grade = max(grades)
