@@ -157,7 +157,6 @@ class CourseManagementSystem:
         self._users = {}
         self._courses = {}
         self._evaluations = {}
-        self._id_counter = 1
         self.load_data()
 
     def load_data(self):
@@ -609,14 +608,12 @@ class CourseManagementSystem:
             self._users.clear()
             self._courses.clear()
             self._evaluations.clear()
-            self._id_counter = 1
 
             try:
                 open("users.txt", "w").close()
                 open("courses.txt", "w").close()
                 open("evaluations.txt", "w").close()
                 open("grades.txt", "w").close()
-                open("id_counter.txt", "w").close()
                 print("Todos los datos han sido eliminados exitosamente.")
             except Exception as e:
                 print(f"Error al limpiar archivos: {e}")
