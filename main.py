@@ -679,7 +679,7 @@ while True:
                 evaluation_id = input("ID de la evaluación: ")
                 course_id = input("ID del curso: ")
                 name = input("Nombre de la evaluación: ")
-                eval_type = input("Tipo (exam/assignment): ")
+                eval_type = input("Tipo (examen/assignment): ")
                 max_score = int(input("Puntaje máximo: "))
                 system.create_evaluation(evaluation_id, course_id, name, eval_type, max_score)
 
@@ -696,7 +696,7 @@ while True:
                 system.show_evaluation_results()
 
             case "10":
-                threshold = input("Umbral de promedio (default 60): ")
+                threshold = input("Umbral de promedio (por defecto 60): ")
                 threshold = int(threshold) if threshold else 60
                 system.generate_low_performance_report(threshold)
 
