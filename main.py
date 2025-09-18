@@ -249,10 +249,8 @@ class CourseManagementSystem:
                     for eval_id, grade in user.grades.items():
                         file.write(f"{user_id}|{eval_id}|{grade}\n")
 
-    def generate_unique_id(self):
-        unique_id = f"id_{self._id_counter}"
-        self._id_counter += 1
-        return unique_id
+    def id_exists(self, user_id):
+        return user_id in self._users or user_id in self._courses or user_id in self._evaluations
 
     def email_exists(self, email):
         for user in self._users.values():
@@ -266,11 +264,12 @@ class CourseManagementSystem:
                 return True
         return False
 
-    def register_user(self, name, email, user_type, **kwargs):
+    def register_user(self, user_id, name, email, user_type):
+        if self.id_exists(user_id):
+            raise ValueError("El ID ya está en uso")
+
         if self.email_exists(email):
             raise ValueError("El email ya está registrado")
-
-        user_id = self.generate_unique_id()
 
         if user_type == "student":
             self._users[user_id] = Student(user_id, name, email)
@@ -290,14 +289,15 @@ class CourseManagementSystem:
             return [user for user in self._users.values() if user.user_type == user_type]
         return list(self._users.values())
 
-    def create_course(self, name, code, instructor_id):
+    def create_course(self, course_id, name, code, instructor_id):
+        if self.id_exists(course_id):
+            raise ValueError("El ID del curso ya está en uso")
+
         if instructor_id not in self._users or not isinstance(self._users[instructor_id], Instructor):
             raise ValueError("El instructor no existe")
 
         if self.course_code_exists(code):
             raise ValueError("El código del curso ya existe")
-
-        course_id = self.generate_unique_id()
 
         self._courses[course_id] = Course(course_id, name, code, instructor_id)
 
@@ -343,14 +343,15 @@ class CourseManagementSystem:
 
         return students
 
-    def create_evaluation(self, course_id, name, evaluation_type, max_score):
+    def create_evaluation(self, evaluation_id, course_id, name, evaluation_type, max_score):
+        if self.id_exists(evaluation_id):
+            raise ValueError("El ID de la evaluación ya está en uso")
+
         if course_id not in self._courses:
             raise ValueError("El curso no existe")
 
         if evaluation_type not in ["exam", "assignment"]:
             raise ValueError("Tipo de evaluación no válido")
-
-        evaluation_id = self.generate_unique_id()
 
         self._evaluations[evaluation_id] = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
 
@@ -627,22 +628,25 @@ while True:
         match option:
             case "1":
                 print("\n--- REGISTRAR ESTUDIANTE ---")
+                user_id = input("ID del estudiante: ")
                 name = input("Nombre: ")
                 email = input("Email: ")
-                system.register_user(name, email, "student")
+                system.register_user(user_id, name, email, "student")
 
             case "2":
                 print("\n--- REGISTRAR INSTRUCTOR ---")
+                user_id = input("ID del instructor: ")
                 name = input("Nombre: ")
                 email = input("Email: ")
-                system.register_user(name, email, "instructor")
+                system.register_user(user_id, name, email, "instructor")
 
             case "3":
                 print("\n--- CREAR CURSO ---")
+                course_id = input("ID del curso: ")
                 name = input("Nombre del curso: ")
                 code = input("Código del curso: ")
                 instructor_id = input("ID del instructor: ")
-                system.create_course(name, code, instructor_id)
+                system.create_course(course_id, name, code, instructor_id)
 
             case "4":
                 print("\n--- INSCRIBIR ESTUDIANTE EN CURSO ---")
@@ -652,11 +656,12 @@ while True:
 
             case "5":
                 print("\n--- CREAR EVALUACIÓN ---")
+                evaluation_id = input("ID de la evaluación: ")
                 course_id = input("ID del curso: ")
                 name = input("Nombre de la evaluación: ")
                 eval_type = input("Tipo (exam/assignment): ")
                 max_score = int(input("Puntaje máximo: "))
-                system.create_evaluation(course_id, name, eval_type, max_score)
+                system.create_evaluation(evaluation_id, course_id, name, eval_type, max_score)
 
             case "6":
                 system.register_grade()
