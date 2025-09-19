@@ -437,7 +437,7 @@ while True:
                 system.clear_all_data()
 
             case "6":
-                print("¡BYEEEEEEEEEEEEE!")
+                print("¡BYEEEEEEEEEEEEE.!")
                 break
 
             case _:
