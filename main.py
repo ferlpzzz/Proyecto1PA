@@ -1,733 +1,449 @@
 class User:
     def __init__(self, user_id, name, email, user_type):
-        self._user_id = user_id
-        self._name = name
-        self._email = email
-        self._user_type = user_type
-
-    @property
-    def user_id(self):
-        return self._user_id
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def email(self):
-        return self._email
-
-    @property
-    def user_type(self):
-        return self._user_type
+        self.user_id = user_id
+        self.name = name
+        self.email = email
+        self.user_type = user_type
 
     def __str__(self):
-        return f"{self._name} - {self._email} - {self._user_type}"
+        return f"{self.name} - {self.email} - {self.user_type}"
 
 
 class Student(User):
     def __init__(self, user_id, name, email):
-        super().__init__(user_id, name, email, "student")
-        self._enrolled_courses = []
-        self._grades = {}
-
-    @property
-    def enrolled_courses(self):
-        return self._enrolled_courses
-
-    @property
-    def grades(self):
-        return self._grades
-
-    def enroll_course(self, course_id):
-        if course_id not in self._enrolled_courses:
-            self._enrolled_courses.append(course_id)
-            return True
-        return False
-
-    def record_grade(self, evaluation_id, grade):
-        self._grades[evaluation_id] = grade
+        super().__init__(user_id, name, email, "estudiante")
+        self.enrolled_courses = []
+        self.grades = {}
 
 
 class Instructor(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "instructor")
-        self._taught_courses = []
-
-    @property
-    def taught_courses(self):
-        return self._taught_courses
-
-    def add_course(self, course_id):
-        if course_id not in self._taught_courses:
-            self._taught_courses.append(course_id)
-
-
-class Evaluation:
-    def __init__(self, evaluation_id, course_id, name, evaluation_type, max_score):
-        self._evaluation_id = evaluation_id
-        self._course_id = course_id
-        self._name = name
-        self._evaluation_type = evaluation_type
-        self._max_score = max_score
-        self._grades = {}
-
-    @property
-    def evaluation_id(self):
-        return self._evaluation_id
-
-    @property
-    def course_id(self):
-        return self._course_id
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def evaluation_type(self):
-        return self._evaluation_type
-
-    @property
-    def max_score(self):
-        return self._max_score
-
-    def register_grade(self, student_id, grade):
-        if 0 <= grade <= self._max_score:
-            self._grades[student_id] = grade
-            return True
-        return False
-
-    def get_grade(self, student_id):
-        return self._grades.get(student_id, None)
-
-    def __str__(self):
-        return f"{self._name} - ({self._evaluation_type}) - Max score: {self._max_score}"
+        self.taught_courses = []
 
 
 class Course:
     def __init__(self, course_id, name, code, instructor_id):
-        self._course_id = course_id
-        self._name = name
-        self._code = code
-        self._instructor_id = instructor_id
-        self._enrolled_students = []
-        self._evaluations = []
-
-    @property
-    def course_id(self):
-        return self._course_id
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def code(self):
-        return self._code
-
-    @property
-    def instructor_id(self):
-        return self._instructor_id
-
-    @property
-    def enrolled_students(self):
-        return self._enrolled_students
-
-    @property
-    def evaluations(self):
-        return self._evaluations
-
-    def enroll_student(self, student_id):
-        if student_id not in self._enrolled_students:
-            self._enrolled_students.append(student_id)
-            return True
-        return False
-
-    def add_evaluation(self, evaluation_id):
-        if evaluation_id not in self._evaluations:
-            self._evaluations.append(evaluation_id)
+        self.course_id = course_id
+        self.name = name
+        self.code = code
+        self.instructor_id = instructor_id
+        self.enrolled_students = []
+        self.evaluations = []
 
     def __str__(self):
-        return f"{self._name} ({self._code})"
+        return f"{self.name} ({self.code})"
+
+
+class Evaluation:
+    def __init__(self, evaluation_id, course_id, name, evaluation_type, max_score):
+        self.evaluation_id = evaluation_id
+        self.course_id = course_id
+        self.name = name
+        self.evaluation_type = evaluation_type
+        self.max_score = max_score
+        self.grades = {}
+
+    def __str__(self):
+        return f"{self.name} - ({self.evaluation_type}) - Max: {self.max_score}"
 
 
 class CourseManagementSystem:
     def __init__(self):
-        self._users = {}
-        self._courses = {}
-        self._evaluations = {}
+        self.users = {}
+        self.courses = {}
+        self.evaluations = {}
         self.load_data()
 
     def load_data(self):
-        self.load_users()
-        self.load_courses()
-        self.load_evaluations()
-        self.load_grades()
+        files = [("users.txt", self.load_users), ("courses.txt", self.load_courses),
+                 ("evaluations.txt", self.load_evaluations), ("grades.txt", self.load_grades)]
 
-    def save_data(self):
-        self.save_users()
-        self.save_courses()
-        self.save_evaluations()
-        self.save_grades()
+        for filename, loader in files:
+            try:
+                loader()
+            except FileNotFoundError:
+                pass
 
     def load_users(self):
-        try:
-            with open("users.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line:
-                        user_id, name, email, user_type = line.split("|")
-                        if user_type == "student":
-                            self._users[user_id] = Student(user_id, name, email)
-                        elif user_type == "instructor":
-                            self._users[user_id] = Instructor(user_id, name, email)
-            print("Usuarios cargados desde users.txt")
-        except FileNotFoundError:
-            print("Archivo users.txt no encontrado")
-
-    def save_users(self):
-        with open("users.txt", "w", encoding="utf-8") as file:
-            for user_id, user in self._users.items():
-                file.write(f"{user_id}|{user.name}|{user.email}|{user.user_type}\n")
+        with open("users.txt", "r", encoding="utf-8") as file:
+            for line in file:
+                if line.strip():
+                    user_id, name, email, user_type = line.strip().split("|")
+                    if user_type == "estudiante":
+                        self.users[user_id] = Student(user_id, name, email)
+                    elif user_type == "instructor":
+                        self.users[user_id] = Instructor(user_id, name, email)
 
     def load_courses(self):
-        try:
-            with open("courses.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line:
-                        course_id, name, code, instructor_id = line.split("|")
-                        if instructor_id in self._users:
-                            self._courses[course_id] = Course(course_id, name, code, instructor_id)
-            print("Cursos cargados desde courses.txt")
-        except FileNotFoundError:
-            print("Archivo courses.txt no encontrado")
-
-    def save_courses(self):
-        with open("courses.txt", "w", encoding="utf-8") as file:
-            for course_id, course in self._courses.items():
-                file.write(f"{course_id}|{course.name}|{course.code}|{course.instructor_id}\n")
+        with open("courses.txt", "r", encoding="utf-8") as file:
+            for line in file:
+                if line.strip() and "|" in line:
+                    parts = line.strip().split("|")
+                    if len(parts) == 4:
+                        course_id, name, code, instructor_id = parts
+                        if instructor_id in self.users:
+                            course = Course(course_id, name, code, instructor_id)
+                            self.courses[course_id] = course
+                            self.users[instructor_id].taught_courses.append(course_id)
 
     def load_evaluations(self):
-        try:
-            with open("evaluations.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line:
-                        eval_id, name, course_id, eval_type, max_score = line.split("|")
-                        if course_id in self._courses:
-                            self._evaluations[eval_id] = Evaluation(eval_id, course_id, name, eval_type, int(max_score))
-            print("Evaluaciones cargadas desde evaluations.txt")
-        except FileNotFoundError:
-            print("Archivo evaluations.txt no encontrado")
-
-    def save_evaluations(self):
-        with open("evaluations.txt", "w", encoding="utf-8") as file:
-            for eval_id, evaluation in self._evaluations.items():
-                file.write(
-                    f"{eval_id}|{evaluation.name}|{evaluation.course_id}|{evaluation.evaluation_type}|{evaluation.max_score}\n")
+        with open("evaluations.txt", "r", encoding="utf-8") as file:
+            for line in file:
+                if line.strip() and "|" in line:
+                    eval_id, name, course_id, eval_type, max_score = line.strip().split("|")
+                    if course_id in self.courses:
+                        evaluation = Evaluation(eval_id, course_id, name, eval_type, int(max_score))
+                        self.evaluations[eval_id] = evaluation
+                        self.courses[course_id].evaluations.append(eval_id)
 
     def load_grades(self):
-        try:
-            with open("grades.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line:
-                        student_id, eval_id, grade = line.split("|")
-                        if student_id in self._users and eval_id in self._evaluations:
-                            self._users[student_id].record_grade(eval_id, float(grade))
-            print("Calificaciones cargadas desde grades.txt")
-        except FileNotFoundError:
-            print("Archivo grades.txt no encontrado")
+        with open("grades.txt", "r", encoding="utf-8") as file:
+            for line in file:
+                if line.strip() and "|" in line:
+                    student_id, eval_id, grade = line.strip().split("|")
+                    if student_id in self.users and eval_id in self.evaluations:
+                        self.users[student_id].grades[eval_id] = float(grade)
+                        self.evaluations[eval_id].grades[student_id] = float(grade)
 
-    def save_grades(self):
+    def save_data(self):
+        with open("users.txt", "w", encoding="utf-8") as file:
+            for user in self.users.values():
+                file.write(f"{user.user_id}|{user.name}|{user.email}|{user.user_type}\n")
+
+        with open("courses.txt", "w", encoding="utf-8") as file:
+            for course in self.courses.values():
+                file.write(f"{course.course_id}|{course.name}|{course.code}|{course.instructor_id}\n")
+
+        with open("evaluations.txt", "w", encoding="utf-8") as file:
+            for evaluation in self.evaluations.values():
+                file.write(
+                    f"{evaluation.evaluation_id}|{evaluation.name}|{evaluation.course_id}|{evaluation.evaluation_type}|{evaluation.max_score}\n")
+
         with open("grades.txt", "w", encoding="utf-8") as file:
-            for user_id, user in self._users.items():
+            for user_id, user in self.users.items():
                 if isinstance(user, Student):
                     for eval_id, grade in user.grades.items():
                         file.write(f"{user_id}|{eval_id}|{grade}\n")
 
-    def id_exists(self, user_id):
-        return user_id in self._users or user_id in self._courses or user_id in self._evaluations
-
-    def email_exists(self, email):
-        for user in self._users.values():
-            if user.email == email:
-                return True
-        return False
-
-    def course_code_exists(self, code):
-        for course in self._courses.values():
-            if course.code == code:
-                return True
-        return False
-
-    def register_user(self, user_id, name, email, user_type):
-        if self.id_exists(user_id):
+    def safe_input(self, prompt, input_type="str"):
+        while True:
+            try:
+                value = input(prompt)
+                if input_type == "int":
+                    return int(value)
+                elif input_type == "float":
+                    return float(value)
+                else:
+                    return value.strip()
+            except ValueError:
+                print("Error: Ingrese un valor válido")
+            except KeyboardInterrupt:
+                print("\nOperación cancelada")
+                return None
+        if user_id in self.users or user_id in self.courses or user_id in self.evaluations:
             raise ValueError("El ID ya está en uso")
 
-        if self.email_exists(email):
-            raise ValueError("El email ya está registrado")
+        for user in self.users.values():
+            if user.email == email:
+                raise ValueError("El email ya está registrado")
 
-        if user_type == "student":
-            self._users[user_id] = Student(user_id, name, email)
+        if user_type == "estudiante":
+            self.users[user_id] = Student(user_id, name, email)
         elif user_type == "instructor":
-            self._users[user_id] = Instructor(user_id, name, email)
+            self.users[user_id] = Instructor(user_id, name, email)
         else:
             raise ValueError("Tipo de usuario no válido")
+
         self.save_data()
-
-        return user_id
-
-    def get_user(self, user_id):
-        return self._users.get(user_id, None)
-
-    def list_users(self, user_type=None):
-        if user_type:
-            return [user for user in self._users.values() if user.user_type == user_type]
-        return list(self._users.values())
+        print(f"{user_type.title()} registrado exitosamente")
 
     def create_course(self, course_id, name, code, instructor_id):
-        if self.id_exists(course_id):
-            raise ValueError("El ID del curso ya está en uso")
+        if course_id in self.users or course_id in self.courses or course_id in self.evaluations:
+            raise ValueError("El ID ya está en uso")
 
-        if instructor_id not in self._users or not isinstance(self._users[instructor_id], Instructor):
+        if instructor_id not in self.users or not isinstance(self.users[instructor_id], Instructor):
             raise ValueError("El instructor no existe")
 
-        if self.course_code_exists(code):
-            raise ValueError("El código del curso ya existe")
+        for course in self.courses.values():
+            if course.code == code:
+                raise ValueError("El código del curso ya existe")
 
-        self._courses[course_id] = Course(course_id, name, code, instructor_id)
-
-        instructor = self._users[instructor_id]
-        instructor.add_course(course_id)
+        course = Course(course_id, name, code, instructor_id)
+        self.courses[course_id] = course
+        self.users[instructor_id].taught_courses.append(course_id)
         self.save_data()
         print(f"Curso {name} creado exitosamente")
-        return course_id
-
-    def get_course(self, course_id):
-        return self._courses.get(course_id, None)
-
-    def list_courses(self):
-        return list(self._courses.values())
-
-    def enroll_student_in_course(self, student_id, course_id):
-        if student_id not in self._users or not isinstance(self._users[student_id], Student):
-            raise ValueError("El estudiante no existe")
-
-        if course_id not in self._courses:
-            raise ValueError("El curso no existe")
-
-        course = self._courses[course_id]
-        if course.enroll_student(student_id):
-            student = self._users[student_id]
-            result = student.enroll_course(course_id)
-            if result:
-                self.save_data()
-                print("Estudiante inscrito exitosamente en el curso")
-            return result
-
-        return False
-
-    def get_enrolled_students(self, course_id):
-        if course_id not in self._courses:
-            raise ValueError("El curso no existe")
-
-        course = self._courses[course_id]
-        students = []
-        for student_id in course.enrolled_students:
-            if student_id in self._users:
-                students.append(self._users[student_id])
-
-        return students
 
     def create_evaluation(self, evaluation_id, course_id, name, evaluation_type, max_score):
-        if self.id_exists(evaluation_id):
-            raise ValueError("El ID de la evaluación ya está en uso")
+        if evaluation_id in self.users or evaluation_id in self.courses or evaluation_id in self.evaluations:
+            raise ValueError("El ID ya está en uso")
 
-        if course_id not in self._courses:
+        if course_id not in self.courses:
             raise ValueError("El curso no existe")
 
-        if evaluation_type not in ["exam", "assignment"]:
+        if evaluation_type not in ["examen", "tarea"]:
             raise ValueError("Tipo de evaluación no válido")
 
-        self._evaluations[evaluation_id] = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
-
-        course = self._courses[course_id]
-        course.add_evaluation(evaluation_id)
+        evaluation = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
+        self.evaluations[evaluation_id] = evaluation
+        self.courses[course_id].evaluations.append(evaluation_id)
         self.save_data()
-        print(f"Evaluacion {name} creada exitosamente")
+        print(f"Evaluación {name} creada exitosamente")
 
-        return evaluation_id
+    def enroll_student(self, student_id, course_id):
+        if student_id not in self.users or not isinstance(self.users[student_id], Student):
+            raise ValueError("El estudiante no existe")
 
-    def get_evaluation(self, evaluation_id):
-        return self._evaluations.get(evaluation_id, None)
+        if course_id not in self.courses:
+            raise ValueError("El curso no existe")
 
-    def list_course_evaluations(self, course_id):
-        if course_id not in self._courses:
-            raise ValueError("El curso no existe.")
+        student = self.users[student_id]
+        course = self.courses[course_id]
 
-        course = self._courses[course_id]
-        evaluations = []
-        for eval_id in course.evaluations:
-            if eval_id in self._evaluations:
-                evaluations.append(self._evaluations[eval_id])
-
-        return evaluations
-
-    def register_grade(self):
-        print("\n--- REGISTRAR CALIFICACIÓN ---")
-        student_id = input("Carnet del estudiante: ")
-        evaluation_id = input("ID de la evaluación: ")
-
-        if student_id not in self._users or not isinstance(self._users[student_id], Student):
-            print("Error: No existe un estudiante con este carnet.")
+        if course_id in student.enrolled_courses:
+            print("El estudiante ya está inscrito")
             return
 
-        if evaluation_id not in self._evaluations:
-            print("Error: No existe una evaluación con este ID.")
+        student.enrolled_courses.append(course_id)
+        course.enrolled_students.append(student_id)
+        self.save_data()
+        print("Estudiante inscrito exitosamente")
+
+    def register_grade(self, student_id, evaluation_id, grade):
+        if student_id not in self.users or not isinstance(self.users[student_id], Student):
+            raise ValueError("El estudiante no existe")
+
+        if evaluation_id not in self.evaluations:
+            raise ValueError("La evaluación no existe")
+
+        evaluation = self.evaluations[evaluation_id]
+        student = self.users[student_id]
+
+        if evaluation.course_id not in student.enrolled_courses:
+            raise ValueError("El estudiante no está inscrito en este curso")
+
+        if grade < 0 or grade > evaluation.max_score:
+            raise ValueError(f"La calificación debe estar entre 0 y {evaluation.max_score}")
+
+        student.grades[evaluation_id] = grade
+        evaluation.grades[student_id] = grade
+        self.save_data()
+        print(f"Calificación registrada: {grade}/{evaluation.max_score}")
+
+    def show_student_grades(self, student_id):
+        if student_id not in self.users or not isinstance(self.users[student_id], Student):
+            print("El estudiante no existe")
             return
 
-        try:
-            grade = float(input("Calificación: "))
-            evaluation = self._evaluations[evaluation_id]
-
-            if grade < 0 or grade > evaluation.max_score:
-                print(f"Error: La calificación debe estar entre 0 y {evaluation.max_score}")
-                return
-
-            student = self._users[student_id]
-
-            if evaluation.course_id not in student.enrolled_courses:
-                print("Error: El estudiante no está inscrito en este curso.")
-                return
-
-            if evaluation.register_grade(student_id, grade):
-                student.record_grade(evaluation_id, grade)
-                self.save_data()
-                print(f"Calificación {grade}/{evaluation.max_score} registrada para {student.name}")
-            else:
-                print("Error al registrar la calificación")
-
-        except ValueError:
-            print("Error: La calificación debe ser un número.")
-
-    def show_course_details(self):
-        print("\n--- DETALLES DEL CURSO ---")
-        course_id = input("ID del curso: ")
-
-        if course_id not in self._courses:
-            print("Error: No existe un curso con este ID.")
-            return
-
-        course = self._courses[course_id]
-        print(f"\nCURSO: {course.name} ({course.code})")
-
-        if course.instructor_id in self._users:
-            instructor = self._users[course.instructor_id]
-            print(f"Instructor: {instructor.name}")
-
-        print(f"\nEstudiantes inscritos ({len(course.enrolled_students)}):")
-        for student_id in course.enrolled_students:
-            if student_id in self._users:
-                student = self._users[student_id]
-                print(f"  - {student.name} ({student_id})")
-
-        print(f"\nEvaluaciones ({len(course.evaluations)}):")
-        for eval_id in course.evaluations:
-            if eval_id in self._evaluations:
-                evaluation = self._evaluations[eval_id]
-                print(f"  - {evaluation.name} (ID: {eval_id}, Max: {evaluation.max_score})")
-
-    def show_student_grades(self):
-        print("\n--- CALIFICACIONES DEL ESTUDIANTE ---")
-        student_id = input("ID del estudiante: ")
-
-        if student_id not in self._users or not isinstance(self._users[student_id], Student):
-            print("Error: No existe un estudiante con este ID.")
-            return
-
-        student = self._users[student_id]
-        print(f"\nCalificaciones de {student.name} ({student_id})")
+        student = self.users[student_id]
+        print(f"\nCalificaciones de {student.name}:")
 
         if not student.grades:
-            print("No tiene calificaciones registradas.")
+            print("No tiene calificaciones")
             return
 
-        total_score = 0
+        total = 0
         count = 0
-
         for eval_id, grade in student.grades.items():
-            if eval_id in self._evaluations:
-                evaluation = self._evaluations[eval_id]
+            if eval_id in self.evaluations:
+                evaluation = self.evaluations[eval_id]
                 percentage = (grade / evaluation.max_score) * 100
-                print(f"  - {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.2f}%)")
-                total_score += grade
+                print(f"- {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
+                total += grade
                 count += 1
 
         if count > 0:
-            average = total_score / count
-            print(f"\nPromedio: {average:.2f}/100")
+            print(f"Promedio: {total / count:.2f}")
 
-    def show_evaluation_results(self):
-        print("\n--- RESULTADOS DE EVALUACIÓN ---")
-        evaluation_id = input("ID de la evaluación: ")
-
-        if evaluation_id not in self._evaluations:
-            print("Error: No existe una evaluación con este ID.")
+    def show_course_details(self, course_id):
+        if course_id not in self.courses:
+            print("El curso no existe")
             return
 
-        evaluation = self._evaluations[evaluation_id]
-        course = self._courses.get(evaluation.course_id)
+        course = self.courses[course_id]
+        instructor = self.users.get(course.instructor_id)
 
-        print(f"\nEvaluación: {evaluation.name}")
-        print(f"Curso: {course.name if course else 'Curso no encontrado'}")
-        print(f"Tipo: {evaluation.evaluation_type}")
-        print(f"Puntaje máximo: {evaluation.max_score}")
-
-        grades = evaluation._grades
-        if not grades:
-            print("No hay calificaciones registradas para esta evaluación.")
-            return
-
-        print(f"\nCalificaciones registradas ({len(grades)}):")
-        grade_values = []
-
-        for student_id, grade in grades.items():
-            if student_id in self._users:
-                student = self._users[student_id]
-                percentage = (grade / evaluation.max_score) * 100
-                print(f"  - {student.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
-                grade_values.append(percentage)
-
-        if grade_values:
-            avg_percentage = sum(grade_values) / len(grade_values)
-            max_percentage = max(grade_values)
-            min_percentage = min(grade_values)
-
-            print(f"\nEstadísticas:")
-            print(f"  - Promedio: {avg_percentage:.1f}%")
-            print(f"  - Máxima: {max_percentage:.1f}%")
-            print(f"  - Mínima: {min_percentage:.1f}%")
-
-    def generate_low_performance_report(self, threshold=60):
-        print(f"\n=== REPORTE: ESTUDIANTES CON RENDIMIENTO BAJO (<{threshold}) ===")
-
-        found = False
-        for student_id, student in self._users.items():
-            if isinstance(student, Student) and student.grades:
-                total_score = sum(student.grades.values())
-                average = total_score / len(student.grades)
-
-                if average < threshold:
-                    print(f"\n{student.name} ({student_id})")
-                    print(f"Promedio: {average:.2f}/100")
-                    print(f"Cursos inscritos: {len(student.enrolled_courses)}")
-                    print(f"Evaluaciones realizadas: {len(student.grades)}")
-                    found = True
-
-        if not found:
-            print("No hay estudiantes con rendimiento bajo.")
-
-    def generate_course_report(self):
-        print("\n=== REPORTE POR CURSO ===")
-        course_id = input("ID del curso: ")
-
-        if course_id not in self._courses:
-            print("Error: No existe un curso con este ID.")
-            return
-
-        course = self._courses[course_id]
-        print(f"\nReporte del curso: {course.name} ({course.code})")
-
-        if course.instructor_id in self._users:
-            instructor = self._users[course.instructor_id]
-            print(f"Instructor: {instructor.name}")
-
-        print(f"Estudiantes inscritos: {len(course.enrolled_students)}")
+        print(f"\nCurso: {course.name} ({course.code})")
+        print(f"Instructor: {instructor.name if instructor else 'No encontrado'}")
+        print(f"Estudiantes: {len(course.enrolled_students)}")
         print(f"Evaluaciones: {len(course.evaluations)}")
 
-        for eval_id in course.evaluations:
-            if eval_id in self._evaluations:
-                evaluation = self._evaluations[eval_id]
-                grades = []
-
-                for student_id in course.enrolled_students:
-                    if student_id in self._users and eval_id in self._users[student_id].grades:
-                        grades.append(self._users[student_id].grades[eval_id])
-                if grades:
-                    avg = sum(grades) / len(grades)
-                    max_grade = max(grades)
-                    min_grade = min(grades)
-                    print(f"\n{evaluation.name}:")
-                    print(f"Promedio: {avg:.2f}/{evaluation.max_score}")
-                    print(f"Máxima: {max_grade}/{evaluation.max_score}")
-                    print(f"Mínima: {min_grade}/{evaluation.max_score}")
-                    print(f"Calificados: {len(grades)}/{len(course.enrolled_students)}")
-
-    def generate_student_report(self):
-        print("\n=== REPORTE INDIVIDUAL DE ESTUDIANTE ===")
-        student_id = input("ID del estudiante: ")
-
-        if student_id not in self._users or not isinstance(self._users[student_id], Student):
-            print("Error: No existe un estudiante con este ID.")
-            return
-
-        student = self._users[student_id]
-        print(f"\nReporte de: {student.name} ({student_id})")
-        print(f"Cursos inscritos: {len(student.enrolled_courses)}")
-
-        if student.grades:
-            total = sum(student.grades.values())
-            average = total / len(student.grades)
-            print(f"Promedio general: {average:.2f}/100")
-
-            print("\nCalificaciones por curso:")
-            for course_id in student.enrolled_courses:
-                if course_id in self._courses:
-                    course = self._courses[course_id]
-                    course_grades = []
-
-                    for eval_id in course.evaluations:
-                        if eval_id in student.grades:
-                            course_grades.append(student.grades[eval_id])
-
-                    if course_grades:
-                        course_avg = sum(course_grades) / len(course_grades)
-                        print(f"  - {course.name}: {course_avg:.2f}/100")
-        else:
-            print("No tiene calificaciones registradas.")
+    def list_items(self, item_type):
+        if item_type == "users":
+            if not self.users:
+                print("No hay usuarios registrados")
+                return
+            for user in self.users.values():
+                print(f"- [{user.user_id}] {user}")
+        elif item_type == "students":
+            students = [u for u in self.users.values() if isinstance(u, Student)]
+            if not students:
+                print("No hay estudiantes registrados")
+                return
+            for student in students:
+                print(f"- [{student.user_id}] {student}")
+        elif item_type == "instructors":
+            instructors = [u for u in self.users.values() if isinstance(u, Instructor)]
+            if not instructors:
+                print("No hay instructores registrados")
+                return
+            for instructor in instructors:
+                print(f"- [{instructor.user_id}] {instructor}")
+        elif item_type == "courses":
+            if not self.courses:
+                print("No hay cursos registrados")
+                return
+            for course in self.courses.values():
+                instructor = self.users.get(course.instructor_id)
+                instructor_name = instructor.name if instructor else "No encontrado"
+                print(f"- [{course.course_id}] {course} - {instructor_name}")
 
     def clear_all_data(self):
-        print("\n--- LIMPIAR TODOS LOS DATOS ---")
-        confirm = input("¿Estás seguro de que quieres borrar TODOS los datos? (escribe 'CONFIRMAR' para continuar): ")
-
+        confirm = input("¿Estás seguro? Escribe 'CONFIRMAR': ")
         if confirm == "CONFIRMAR":
-            self._users.clear()
-            self._courses.clear()
-            self._evaluations.clear()
-
-            try:
-                open("users.txt", "w").close()
-                open("courses.txt", "w").close()
-                open("evaluations.txt", "w").close()
-                open("grades.txt", "w").close()
-                print("Todos los datos han sido eliminados exitosamente.")
-            except Exception as e:
-                print(f"Error al limpiar archivos: {e}")
+            self.users.clear()
+            self.courses.clear()
+            self.evaluations.clear()
+            for filename in ["users.txt", "courses.txt", "evaluations.txt", "grades.txt"]:
+                open(filename, "w").close()
+            print("Todos los datos eliminados")
         else:
-            print("Operación cancelada.")
+            print("Operación cancelada")
 
 
 system = CourseManagementSystem()
 
 while True:
-    print("       SISTEMA DE GESTIÓN DE CURSOS ONLINE")
-    print("=" * 50)
-    print("1. Registrar Estudiante")
-    print("2. Registrar Instructor")
-    print("3. Crear Curso")
-    print("4. Inscribir Estudiante en Curso")
-    print("5. Crear Evaluación")
-    print("6. Registrar Calificación")
-    print("7. Ver Detalles de Curso")
-    print("8. Ver Calificaciones de Estudiante")
-    print("9. Ver Resultados de Evaluación")
-    print("10. Reporte: Estudiantes con Rendimiento Bajo")
-    print("11. Reporte por Curso")
-    print("12. Reporte Individual de Estudiante")
-    print("13. Listar Usuarios")
-    print("14. Listar Cursos")
-    print("15. Limpiar Todos los Datos")
-    print("16. Salir")
-    option = input("Seleccione una opción: ")
+    print("\n" + "=" * 40)
+    print("  SISTEMA DE GESTIÓN DE CURSOS")
+    print("=" * 40)
+    print("1. Usuarios  2. Cursos  3. Evaluaciones")
+    print("4. Reportes  5. Limpiar  6. Salir")
+
+    option = input("Opción: ")
 
     try:
         match option:
             case "1":
-                print("\n--- REGISTRAR ESTUDIANTE ---")
-                user_id = input("ID del estudiante: ")
-                name = input("Nombre: ")
-                email = input("Email: ")
-                system.register_user(user_id, name, email, "student")
+                print("\n1. Registrar Estudiante  2. Registrar Instructor")
+                print("3. Listar Usuarios  4. Listar Estudiantes  5. Listar Instructores")
+                sub = input("Opción: ")
+                match sub:
+                    case "1":
+                        user_id = system.safe_input("ID: ")
+                        if user_id is None: continue
+                        name = system.safe_input("Nombre: ")
+                        if name is None: continue
+                        email = system.safe_input("Email: ")
+                        if email is None: continue
+                        system.register_user(user_id, name, email, "estudiante")
+                    case "2":
+                        user_id = system.safe_input("ID: ")
+                        if user_id is None: continue
+                        name = system.safe_input("Nombre: ")
+                        if name is None: continue
+                        email = system.safe_input("Email: ")
+                        if email is None: continue
+                        system.register_user(user_id, name, email, "instructor")
+                    case "3":
+                        system.list_items("users")
+                    case "4":
+                        system.list_items("students")
+                    case "5":
+                        system.list_items("instructors")
+                    case _:
+                        print("Opción no válida. Seleccione del 1 al 5.")
 
             case "2":
-                print("\n--- REGISTRAR INSTRUCTOR ---")
-                user_id = input("ID del instructor: ")
-                name = input("Nombre: ")
-                email = input("Email: ")
-                system.register_user(user_id, name, email, "instructor")
+                print("\n1. Crear Curso  2. Inscribir Estudiante  3. Ver Detalles  4. Listar Cursos")
+                sub = input("Opción: ")
+                match sub:
+                    case "1":
+                        course_id = input("ID curso: ")
+                        name = input("Nombre: ")
+                        code = input("Código: ")
+                        instructor_id = input("ID instructor: ")
+                        system.create_course(course_id, name, code, instructor_id)
+                    case "2":
+                        student_id = input("ID estudiante: ")
+                        course_id = input("ID curso: ")
+                        system.enroll_student(student_id, course_id)
+                    case "3":
+                        course_id = input("ID curso: ")
+                        system.show_course_details(course_id)
+                    case "4":
+                        system.list_items("courses")
+                    case _:
+                        print("Opción no válida. Seleccione del 1 al 4.")
 
             case "3":
-                print("\n--- CREAR CURSO ---")
-                course_id = input("ID del curso: ")
-                name = input("Nombre del curso: ")
-                code = input("Código del curso: ")
-                instructor_id = input("ID del instructor: ")
-                system.create_course(course_id, name, code, instructor_id)
+                print("\n1. Crear Evaluación  2. Registrar Calificación  3. Ver Calificaciones")
+                sub = input("Opción: ")
+                match sub:
+                    case "1":
+                        eval_id = input("ID evaluación: ")
+                        course_id = input("ID curso: ")
+                        name = input("Nombre: ")
+                        eval_type = system.safe_input("Tipo (examen/tarea): ")
+                        if eval_type is None: continue
+                        max_score = system.safe_input("Puntaje máximo: ", "int")
+                        if max_score is None: continue
+                        system.create_evaluation(eval_id, course_id, name, eval_type, max_score)
+                    case "2":
+                        student_id = input("ID estudiante: ")
+                        eval_id = input("ID evaluación: ")
+                        grade = float(input("Calificación: "))
+                        system.register_grade(student_id, eval_id, grade)
+                    case "3":
+                        student_id = system.safe_input("ID estudiante: ")
+                        if student_id is None: continue
+                        system.show_student_grades(student_id)
+                    case _:
+                        print("Opción no válida. Seleccione del 1 al 3.")
 
             case "4":
-                print("\n--- INSCRIBIR ESTUDIANTE EN CURSO ---")
-                student_id = input("ID del estudiante: ")
-                course_id = input("ID del curso: ")
-                system.enroll_student_in_course(student_id, course_id)
+                print("\n1. Estudiantes con bajo rendimiento")
+                print("2. Reporte de curso")
+                print("3. Reporte de estudiante")
+                sub = input("Opción: ")
+                match sub:
+                    case "1":
+                        threshold = input("Umbral (60): ")
+                        threshold = float(threshold) if threshold else 60
+                        print(f"\nEstudiantes con promedio < {threshold}:")
+                        found = False
+                        for student in system.users.values():
+                            if isinstance(student, Student) and student.grades:
+                                total = sum(student.grades.values())
+                                avg = total / len(student.grades)
+                                if avg < threshold:
+                                    print(f"- {student.name}: {avg:.1f}")
+                                    found = True
+                        if not found:
+                            print("No se encontraron estudiantes con rendimiento bajo")
+                    case "2":
+                        course_id = system.safe_input("ID curso: ")
+                        if course_id is None: continue
+                        system.show_course_details(course_id)
+                    case "3":
+                        student_id = system.safe_input("ID estudiante: ")
+                        if student_id is None: continue
+                        system.show_student_grades(student_id)
+                    case _:
+                        print("Opción no válida. Seleccione del 1 al 3.")
 
             case "5":
-                print("\n--- CREAR EVALUACIÓN ---")
-                evaluation_id = input("ID de la evaluación: ")
-                course_id = input("ID del curso: ")
-                name = input("Nombre de la evaluación: ")
-                eval_type = input("Tipo (examen/assignment): ")
-                max_score = int(input("Puntaje máximo: "))
-                system.create_evaluation(evaluation_id, course_id, name, eval_type, max_score)
-
-            case "6":
-                system.register_grade()
-
-            case "7":
-                system.show_course_details()
-
-            case "8":
-                system.show_student_grades()
-
-            case "9":
-                system.show_evaluation_results()
-
-            case "10":
-                threshold = input("Umbral de promedio (por defecto 60): ")
-                threshold = int(threshold) if threshold else 60
-                system.generate_low_performance_report(threshold)
-
-            case "11":
-                system.generate_course_report()
-
-            case "12":
-                system.generate_student_report()
-
-            case "13":
-                print("\n--- LISTA DE USUARIOS ---")
-                users = system.list_users()
-                for user in users:
-                    print(f"- {user}")
-
-            case "14":
-                print("\n--- LISTA DE CURSOS ---")
-                courses = system.list_courses()
-                for course in courses:
-                    print(f"- {course}")
-
-            case "15":
                 system.clear_all_data()
 
-            case "16":
-                print("¡Gracias por usar el sistema, adioooooooooos! ")
+            case "6":
+                print("¡BYEEEEEEEEEEEEE!")
                 break
 
             case _:
-                print("Opción no válida. Intente de nuevo.")
+                print("Opción no válida. Seleccione del 1 al 6.")
 
     except ValueError as e:
         print(f"Error: {e}")
     except Exception as e:
-        print(f"Error inesperado: {e}")
+        print(f"Error: {e}")
