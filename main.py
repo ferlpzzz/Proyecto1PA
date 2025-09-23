@@ -1,25 +1,53 @@
 class User:
     def __init__(self, user_id, name, email, user_type):
-        self.user_id = user_id
-        self.name = name
-        self.email = email
-        self.user_type = user_type
+        self._user_id = user_id
+        self._name = name
+        self._email = email
+        self._user_type = user_type
+
+    @property
+    def user_id(self):
+        return self._user_id
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def email(self):
+        return self._email
+
+    @property
+    def user_type(self):
+        return self._user_type
 
     def __str__(self):
-        return f"{self.name} - {self.email} - {self.user_type}"
+        return f"{self._name} - {self._email} - {self._user_type}"
 
 
 class Student(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "estudiante")
-        self.enrolled_courses = []
-        self.grades = {}
+        self._enrolled_courses = []
+        self._grades = {}
+
+    @property
+    def enrolled_courses(self):
+        return self._enrolled_courses
+
+    @property
+    def grades(self):
+        return self._grades
 
 
 class Instructor(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "instructor")
-        self.taught_courses = []
+        self._taught_courses = []
+
+    @property
+    def taught_courses(self):
+        return self._taught_courses
 
 
 class Course:
@@ -141,6 +169,8 @@ class CourseManagementSystem:
             except KeyboardInterrupt:
                 print("\nOperación cancelada")
                 return None
+
+    def register_user(self, user_id, name, email, user_type):
         if user_id in self.users or user_id in self.courses or user_id in self.evaluations:
             raise ValueError("El ID ya está en uso")
 
@@ -205,7 +235,7 @@ class CourseManagementSystem:
             print("El estudiante ya está inscrito")
             return
 
-        student.enrolled_courses.append(course_id)
+        student._enrolled_courses.append(course_id)
         course.enrolled_students.append(student_id)
         self.save_data()
         print("Estudiante inscrito exitosamente")
@@ -220,13 +250,13 @@ class CourseManagementSystem:
         evaluation = self.evaluations[evaluation_id]
         student = self.users[student_id]
 
-        if evaluation.course_id not in student.enrolled_courses:
+        if evaluation.course_id not in student._enrolled_courses:
             raise ValueError("El estudiante no está inscrito en este curso")
 
         if grade < 0 or grade > evaluation.max_score:
             raise ValueError(f"La calificación debe estar entre 0 y {evaluation.max_score}")
 
-        student.grades[evaluation_id] = grade
+        student._grades[evaluation_id] = grade
         evaluation.grades[student_id] = grade
         self.save_data()
         print(f"Calificación registrada: {grade}/{evaluation.max_score}")
@@ -437,7 +467,7 @@ while True:
                 system.clear_all_data()
 
             case "6":
-                print("¡BYEEEEEEEEEEEEE.!")
+                print("¡Adiós!")
                 break
 
             case _:
