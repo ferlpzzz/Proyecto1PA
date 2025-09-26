@@ -29,7 +29,7 @@ class Student(User):
     def __init__(self, user_id, name, email):
         super().__init__(user_id, name, email, "estudiante")
         self._enrolled_courses = []
-        self._grades = {}
+        self._grades = {}  # {course_id: {eval_id: grade}}
 
     @property
     def enrolled_courses(self):
@@ -38,6 +38,34 @@ class Student(User):
     @property
     def grades(self):
         return self._grades
+
+    def get_course_grades(self, course_id):
+        """Obtener las calificaciones de un curso específico"""
+        return self._grades.get(course_id, {})
+
+    def add_grade(self, course_id, eval_id, grade):
+        """Agregar una calificación para un curso específico"""
+        if course_id not in self._grades:
+            self._grades[course_id] = {}
+        self._grades[course_id][eval_id] = grade
+
+    def get_course_average(self, course_id):
+        """Calcular el promedio de un curso específico"""
+        course_grades = self.get_course_grades(course_id)
+        if not course_grades:
+            return 0
+        return sum(course_grades.values()) / len(course_grades)
+
+    def get_overall_average(self):
+        """Calcular el promedio general de todos los cursos"""
+        if not self._grades:
+            return 0
+        total_sum = 0
+        total_count = 0
+        for course_grades in self._grades.values():
+            total_sum += sum(course_grades.values())
+            total_count += len(course_grades)
+        return total_sum / total_count if total_count > 0 else 0
 
 
 class Instructor(User):
@@ -57,10 +85,18 @@ class Course:
         self.code = code
         self.instructor_id = instructor_id
         self.enrolled_students = []
-        self.evaluations = []
+        self.evaluations = []  # Lista de evaluation_ids
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+    def get_course_evaluations(self, system):
+        """Obtener objetos de evaluación del curso"""
+        course_evals = []
+        for eval_id in self.evaluations:
+            if eval_id in system.evaluations:
+                course_evals.append(system.evaluations[eval_id])
+        return course_evals
 
 
 class Evaluation:
@@ -70,7 +106,7 @@ class Evaluation:
         self.name = name
         self.evaluation_type = evaluation_type
         self.max_score = max_score
-        self.grades = {}
+        self.grades = {}  # {student_id: grade}
 
     def __str__(self):
         return f"{self.name} - ({self.evaluation_type}) - Max: {self.max_score}"
@@ -113,7 +149,8 @@ class CourseManagementSystem:
                         if instructor_id in self.users:
                             course = Course(course_id, name, code, instructor_id)
                             self.courses[course_id] = course
-                            self.users[instructor_id].taught_courses.append(course_id)
+                            if hasattr(self.users[instructor_id], 'taught_courses'):
+                                self.users[instructor_id].taught_courses.append(course_id)
 
     def load_evaluations(self):
         with open("evaluations.txt", "r", encoding="utf-8") as file:
@@ -129,9 +166,11 @@ class CourseManagementSystem:
         with open("grades.txt", "r", encoding="utf-8") as file:
             for line in file:
                 if line.strip() and "|" in line:
-                    student_id, eval_id, grade = line.strip().split("|")
-                    if student_id in self.users and eval_id in self.evaluations:
-                        self.users[student_id].grades[eval_id] = float(grade)
+                    student_id, course_id, eval_id, grade = line.strip().split("|")
+                    if (student_id in self.users and
+                            isinstance(self.users[student_id], Student) and
+                            eval_id in self.evaluations):
+                        self.users[student_id].add_grade(course_id, eval_id, float(grade))
                         self.evaluations[eval_id].grades[student_id] = float(grade)
 
     def save_data(self):
@@ -151,8 +190,9 @@ class CourseManagementSystem:
         with open("grades.txt", "w", encoding="utf-8") as file:
             for user_id, user in self.users.items():
                 if isinstance(user, Student):
-                    for eval_id, grade in user.grades.items():
-                        file.write(f"{user_id}|{eval_id}|{grade}\n")
+                    for course_id, course_grades in user.grades.items():
+                        for eval_id, grade in course_grades.items():
+                            file.write(f"{user_id}|{course_id}|{eval_id}|{grade}\n")
 
     def safe_input(self, prompt, input_type="str"):
         while True:
@@ -215,6 +255,11 @@ class CourseManagementSystem:
         if evaluation_type not in ["examen", "tarea"]:
             raise ValueError("Tipo de evaluación no válido")
 
+        # Verificar si ya existe evaluación con mismo nombre en el curso
+        for eval_obj in self.evaluations.values():
+            if eval_obj.course_id == course_id and eval_obj.name.lower() == name.lower():
+                raise ValueError("Ya existe una evaluación con ese nombre en este curso")
+
         evaluation = Evaluation(evaluation_id, course_id, name, evaluation_type, max_score)
         self.evaluations[evaluation_id] = evaluation
         self.courses[course_id].evaluations.append(evaluation_id)
@@ -249,42 +294,79 @@ class CourseManagementSystem:
 
         evaluation = self.evaluations[evaluation_id]
         student = self.users[student_id]
+        course_id = evaluation.course_id
 
-        if evaluation.course_id not in student._enrolled_courses:
+        if course_id not in student._enrolled_courses:
             raise ValueError("El estudiante no está inscrito en este curso")
 
         if grade < 0 or grade > evaluation.max_score:
             raise ValueError(f"La calificación debe estar entre 0 y {evaluation.max_score}")
 
-        student._grades[evaluation_id] = grade
+        student.add_grade(course_id, evaluation_id, grade)
         evaluation.grades[student_id] = grade
         self.save_data()
         print(f"Calificación registrada: {grade}/{evaluation.max_score}")
 
-    def show_student_grades(self, student_id):
+    def show_student_grades(self, student_id, course_id=None):
         if student_id not in self.users or not isinstance(self.users[student_id], Student):
             print("El estudiante no existe")
             return
 
         student = self.users[student_id]
-        print(f"\nCalificaciones de {student.name}:")
 
-        if not student.grades:
-            print("No tiene calificaciones")
-            return
+        if course_id:
+            # Mostrar calificaciones de un curso específico
+            if course_id not in student.enrolled_courses:
+                print("El estudiante no está inscrito en ese curso")
+                return
 
-        total = 0
-        count = 0
-        for eval_id, grade in student.grades.items():
-            if eval_id in self.evaluations:
-                evaluation = self.evaluations[eval_id]
-                percentage = (grade / evaluation.max_score) * 100
-                print(f"- {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
-                total += grade
-                count += 1
+            course_grades = student.get_course_grades(course_id)
+            course = self.courses.get(course_id)
+            print(f"\nCalificaciones de {student.name} en {course.name if course else 'Curso Desconocido'}:")
 
-        if count > 0:
-            print(f"Promedio: {total / count:.2f}")
+            if not course_grades:
+                print("No tiene calificaciones en este curso")
+                return
+
+            total = 0
+            for eval_id, grade in course_grades.items():
+                if eval_id in self.evaluations:
+                    evaluation = self.evaluations[eval_id]
+                    percentage = (grade / evaluation.max_score) * 100
+                    print(f"- {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
+                    total += grade
+
+            average = student.get_course_average(course_id)
+            print(f"Promedio del curso: {average:.2f}")
+
+        else:
+            # Mostrar calificaciones de todos los cursos
+            print(f"\nCalificaciones de {student.name}:")
+
+            if not student.grades:
+                print("No tiene calificaciones")
+                return
+
+            for enrolled_course_id in student.enrolled_courses:
+                if enrolled_course_id in self.courses:
+                    course = self.courses[enrolled_course_id]
+                    course_grades = student.get_course_grades(enrolled_course_id)
+
+                    if course_grades:
+                        print(f"\n--- {course.name} ---")
+                        course_total = 0
+                        for eval_id, grade in course_grades.items():
+                            if eval_id in self.evaluations:
+                                evaluation = self.evaluations[eval_id]
+                                percentage = (grade / evaluation.max_score) * 100
+                                print(f"- {evaluation.name}: {grade}/{evaluation.max_score} ({percentage:.1f}%)")
+                                course_total += grade
+
+                        course_avg = student.get_course_average(enrolled_course_id)
+                        print(f"Promedio: {course_avg:.2f}")
+
+            overall_avg = student.get_overall_average()
+            print(f"\nPromedio general: {overall_avg:.2f}")
 
     def show_course_details(self, course_id):
         if course_id not in self.courses:
@@ -296,8 +378,16 @@ class CourseManagementSystem:
 
         print(f"\nCurso: {course.name} ({course.code})")
         print(f"Instructor: {instructor.name if instructor else 'No encontrado'}")
-        print(f"Estudiantes: {len(course.enrolled_students)}")
+        print(f"Estudiantes inscritos: {len(course.enrolled_students)}")
         print(f"Evaluaciones: {len(course.evaluations)}")
+
+        # Mostrar evaluaciones del curso
+        if course.evaluations:
+            print("\nEvaluaciones:")
+            for eval_id in course.evaluations:
+                if eval_id in self.evaluations:
+                    evaluation = self.evaluations[eval_id]
+                    print(f"- {evaluation.name} ({evaluation.evaluation_type}) - Max: {evaluation.max_score}")
 
     def list_items(self, item_type):
         if item_type == "users":
@@ -428,7 +518,16 @@ while True:
                     case "3":
                         student_id = system.safe_input("ID estudiante: ")
                         if student_id is None: continue
-                        system.show_student_grades(student_id)
+                        print("\n1. Ver todas las calificaciones  2. Ver calificaciones por curso")
+                        sub_op = input("Opción: ")
+                        if sub_op == "1":
+                            system.show_student_grades(student_id)
+                        elif sub_op == "2":
+                            course_id = system.safe_input("ID del curso: ")
+                            if course_id is None: continue
+                            system.show_student_grades(student_id, course_id)
+                        else:
+                            print("Opción no válida")
                     case _:
                         print("Opción no válida. Seleccione del 1 al 3.")
 
@@ -441,14 +540,13 @@ while True:
                     case "1":
                         threshold = input("Umbral (60): ")
                         threshold = float(threshold) if threshold else 60
-                        print(f"\nEstudiantes con promedio < {threshold}:")
+                        print(f"\nEstudiantes con promedio general < {threshold}:")
                         found = False
                         for student in system.users.values():
-                            if isinstance(student, Student) and student.grades:
-                                total = sum(student.grades.values())
-                                avg = total / len(student.grades)
-                                if avg < threshold:
-                                    print(f"- {student.name}: {avg:.1f}")
+                            if isinstance(student, Student):
+                                overall_avg = student.get_overall_average()
+                                if overall_avg < threshold and overall_avg > 0:
+                                    print(f"- {student.name}: {overall_avg:.1f}")
                                     found = True
                         if not found:
                             print("No se encontraron estudiantes con rendimiento bajo")
